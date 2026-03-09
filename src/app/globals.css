@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-ocean-900 text-parchment antialiased;
+  font-family: theme("fontFamily.body");
+}
+
+.pirate-frame {
+  @apply relative rounded-3xl border border-gold-500/40 bg-ocean-800/80 shadow-card-glow overflow-hidden;
+}
+
+.pirate-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 60%),
+    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 60%);
+  opacity: 0.9;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.card-hover {
+  @apply transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-card-glow;
+}
+
+.nav-blur {
+  @apply backdrop-blur-xl bg-ocean-900/70 border-b border-gold-500/10;
+}
+
+.pill-badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-wide;
+}
+
+.toast {
+  @apply fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-gold-500/30 bg-ocean-800/95 px-4 py-3 text-sm shadow-card-glow;
+}
+
