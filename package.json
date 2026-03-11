@@ -5,7 +5,7 @@
   "description": "Password-protected One Piece TCG team collection tracker",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
@@ -21,12 +21,14 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "autoprefixer": "^10.4.27",
     "bcrypt": "^6.0.0",
     "cookie": "^1.1.1",
     "jsonwebtoken": "^9.0.3",
     "next": "^15.5.12",
+    "pg": "^8.20.0",
     "postcss": "^8.5.8",
     "prisma": "^7.4.2",
     "react": "^19.2.4",
@@ -34,13 +36,15 @@
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.2",
+    "@types/node": "22.19.15",
+    "@types/pg": "^8.18.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.5.12",
-    "typescript": "^5.7.3"
+    "typescript": "5.9.3"
   }
 }
