@@ -10,6 +10,35 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  role         Role     @default(MEMBER)
+
+  borrows      Borrow[]
+  activityLogs ActivityLog[]
+}
+
+model CardSet {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  code        String   @unique   // e.g. "OP01", "ST01"
+  name        String
+  type        SetType  @default(BOOSTER)
+  releaseDate DateTime?
+  imageUrl    String?
+  cardCount   Int      @default(0)
+
+  cards       Card[]
+}
+
 model Card {
   id              String        @id @default(cuid())
   createdAt       DateTime      @default(now())
@@ -24,6 +53,20 @@ model Card {
   availableQuantity Int
   notes           String?
 
+  cardType        String?       // Leader, Character, Event, Stage
+  cost            Int?
+  power           Int?
+  counter          Int?
+  attribute       String?
+  cardText        String?
+
+  marketPrice     Float?        // USD from OPTCG API
+  inventoryPrice  Float?        // USD from OPTCG API
+  priceUpdatedAt  DateTime?     // last price sync
+
+  setId           String?
+  set             CardSet?      @relation(fields: [setId], references: [id])
+
   borrowItems     BorrowItem[]
 
   @@unique([setCode])
@@ -35,6 +78,8 @@ model Borrow {
   updatedAt   DateTime      @updatedAt
 
   borrowerName String
+  userId       String?
+  user         User?        @relation(fields: [userId], references: [id])
   status       BorrowStatus @default(ACTIVE)
   borrowedAt   DateTime     @default(now())
   returnedAt   DateTime?
@@ -51,6 +96,11 @@ model BorrowItem {
   borrowId  String
 
   quantity  Int
+}
+
+enum Role {
+  ADMIN
+  MEMBER
 }
 
 enum Rarity {
@@ -75,4 +125,22 @@ enum Color {
 enum BorrowStatus {
   ACTIVE
   RETURNED
+}
+
+enum SetType {
+  BOOSTER
+  STARTER_DECK
+  PROMO
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  action    String            // CARD_CREATED, CARD_DELETED, BORROW_CREATED, BORROW_RETURNED, USER_CREATED, USER_DELETED, PRICES_REFRESHED, SET_IMPORTED
+  details   String?           // JSON or human-readable detail
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
 }

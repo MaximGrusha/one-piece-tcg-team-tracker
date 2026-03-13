@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Pirata_One, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 import { ReactNode } from "react";
+import { Providers } from "./providers";
 
 const pirataOne = Pirata_One({
   weight: "400",
@@ -23,11 +24,18 @@ export const metadata: Metadata = {
   description: "Password-protected One Piece TCG team collection and borrow tracker.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="uk" className="dark">
-      <body className={`${pirataOne.variable} ${libreBaskerville.variable} min-h-screen`} style={{ background: '#b8924a' }}>
-        {children}
+    <html lang="uk">
+      <body className={`${pirataOne.variable} ${libreBaskerville.variable} min-h-screen`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

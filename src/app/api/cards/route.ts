@@ -1,19 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { getSessionFromCookies } from '@/lib/auth'
-import { Color, Rarity } from '../../../../generated/prisma/enums'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireAuth, requireAdmin } from "@/lib/auth";
+import { CreateCardSchema } from "@/lib/validations";
+import { Color, Rarity } from "../../../../generated/prisma/enums";
+import { logActivity } from "@/lib/activity";
 
 export async function GET(request: NextRequest) {
-  const session = await getSessionFromCookies()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error } = await requireAuth();
+  if (error) return error;
 
-  const { searchParams } = new URL(request.url)
-  const search = searchParams.get('search') || ''
-  const color = searchParams.get('color') as Color | null
-  const rarity = searchParams.get('rarity') as Rarity | null
-  const availableOnly = searchParams.get('available') === 'true'
+  const { searchParams } = new URL(request.url);
+  const search = searchParams.get("search") || "";
+  const color = searchParams.get("color") as Color | null;
+  const rarity = searchParams.get("rarity") as Rarity | null;
+  const availableOnly = searchParams.get("available") === "true";
 
   const cards = await prisma.card.findMany({
     where: {
@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
         search
           ? {
               OR: [
-                { name: { contains: search, mode: 'insensitive' } },
-                { setCode: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: "insensitive" } },
+                { setCode: { contains: search, mode: "insensitive" } },
               ],
             }
           : {},
@@ -31,37 +31,42 @@ export async function GET(request: NextRequest) {
         availableOnly ? { availableQuantity: { gt: 0 } } : {},
       ],
     },
-    orderBy: [{ setCode: 'asc' }],
-  })
+    orderBy: [{ setCode: "asc" }],
+  });
 
-  return NextResponse.json(cards)
+  return NextResponse.json(cards);
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getSessionFromCookies()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { session, error } = await requireAdmin();
+  if (error) return error;
+
+  const body = await request.json().catch(() => null);
+  const parsed = CreateCardSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
-  const body = await request.json()
-  const { name, setCode, imageUrl, rarity, color, totalQuantity, notes } = body
-
-  if (!name || !setCode || !rarity || !color || !totalQuantity) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-  }
+  const { name, setCode, imageUrl, rarity, color, totalQuantity, notes } =
+    parsed.data;
 
   const card = await prisma.card.create({
     data: {
       name,
       setCode,
-      imageUrl: imageUrl || null,
+      imageUrl: imageUrl ?? null,
       rarity,
       color,
-      totalQuantity: Number(totalQuantity),
-      availableQuantity: Number(totalQuantity),
-      notes: notes || null,
+      totalQuantity,
+      availableQuantity: totalQuantity,
+      notes: notes ?? null,
     },
-  })
+  });
 
-  return NextResponse.json(card, { status: 201 })
+  await logActivity('CARD_CREATED', session.user.id, `${name} (${setCode})`)
+
+  return NextResponse.json(card, { status: 201 });
 }

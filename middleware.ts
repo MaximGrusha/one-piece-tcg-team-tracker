@@ -1,38 +1,51 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { verifySession, getSessionCookieName } from "./src/lib/auth";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/api/auth/login"];
+export default auth((req) => {
+  const { pathname } = req.nextUrl;
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  // NextAuth handles its own /api/auth/* routes — always allow
+  if (pathname.startsWith("/api/auth")) return NextResponse.next();
 
-  // Allow Next internals and static assets
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/api/auth")
-  ) {
+  // API routes: auth is handled per-route, middleware just passes through
+  if (pathname.startsWith("/api")) return NextResponse.next();
+
+  // Login page: redirect to dashboard if already authenticated
+  if (pathname === "/login") {
+    if (req.auth) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   }
 
-  // Root (login) is always public
+  // Root: redirect to dashboard or login
   if (pathname === "/") {
+    return NextResponse.redirect(
+      new URL(req.auth ? "/dashboard" : "/login", req.url)
+    );
+  }
+
+  // Admin-only routes
+  if (pathname.startsWith("/admin")) {
+    if (!req.auth) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+    if (req.auth.user.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   }
 
-  const token = request.cookies.get(getSessionCookieName())?.value;
-  const session = verifySession(token);
-
-  if (!session) {
-    const loginUrl = new URL("/", request.url);
-    loginUrl.searchParams.set("from", pathname);
+  // All other routes require authentication
+  if (!req.auth) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
-
