@@ -34,7 +34,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="uk">
-      <body className={`${pirataOne.variable} ${libreBaskerville.variable} min-h-screen`}>
+      <body className={`${pirataOne.variable} ${libreBaskerville.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

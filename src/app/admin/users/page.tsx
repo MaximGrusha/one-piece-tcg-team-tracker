@@ -9,10 +9,7 @@ export default async function AdminUsersPage() {
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: 'linear-gradient(180deg, #c9a456 0%, #b8873c 50%, #a67530 100%)' }}
-    >
+    <div style={{ minHeight: '100vh' }}>
       <AdminUsersClient currentUserId={session.user.id} />
     </div>
   )

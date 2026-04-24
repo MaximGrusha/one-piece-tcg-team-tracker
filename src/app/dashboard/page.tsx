@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg, #c9a456 0%, #b8873c 50%, #a67530 100%)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <DashboardClient
         userRole={session.user.role}
         userId={session.user.id}
