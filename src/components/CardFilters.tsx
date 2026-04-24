@@ -3,6 +3,10 @@
 import { COLORS, RARITIES, COLOR_HEX } from './constants'
 import type { Color, Rarity } from './types'
 
+const RARITY_SHORT: Record<Rarity, string> = {
+  COMMON: 'C', UNCOMMON: 'UC', RARE: 'R', SUPER_RARE: 'SR', SECRET_RARE: 'SEC', LEADER: 'L',
+}
+
 export function CardFilters({
   search,
   setSearch,
@@ -14,9 +18,6 @@ export function CardFilters({
   setAvailOnly,
   hasFilters,
   clearFilters,
-  filtered,
-  totalCards,
-  loading,
   open,
 }: {
   search: string
@@ -36,65 +37,71 @@ export function CardFilters({
 }) {
   return (
     <aside className={`dash-sidebar${open ? ' open' : ''}`}>
+      {/* Search */}
+      <div className="sidebar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+          <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Назва або код..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="field-input"
+        />
+      </div>
+
+      {/* Color filters */}
       <div className="sidebar-section">
-        <p className="sidebar-section-title">Пошук</p>
-        <div style={{ position: 'relative' }}>
-          <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: 'var(--text-muted)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Назва або код..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="field-input"
-            style={{ paddingLeft: 32, fontSize: 13 }}
-          />
+        <p className="sidebar-label">Колір</p>
+        <div className="color-grid">
+          {COLORS.map(c => {
+            const isActive = selColors.includes(c.key)
+            return (
+              <button
+                key={c.key}
+                onClick={() => toggleColor(c.key)}
+                className={`color-btn${isActive ? ` active active-${c.key}` : ''}`}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: c.key === 'MULTICOLOR'
+                      ? 'conic-gradient(#ef4444 0deg, #3b82f6 90deg, #22c55e 180deg, #a855f7 270deg)'
+                      : c.cls,
+                    flexShrink: 0,
+                    display: 'inline-block',
+                  }}
+                />
+                {c.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
+      {/* Rarity chips */}
       <div className="sidebar-section">
-        <p className="sidebar-section-title">Колір</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {COLORS.map(c => (
-            <button
-              key={c.key}
-              onClick={() => toggleColor(c.key)}
-              className={`color-filter-btn${selColors.includes(c.key) ? ' active' : ''}`}
-            >
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: c.cls, flexShrink: 0, display: 'inline-block' }} />
-              {c.label}
-              {selColors.includes(c.key) && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: 12, height: 12, marginLeft: 'auto' }}>
-                  <path d="M5 12l5 5 9-9" />
-                </svg>
-              )}
-            </button>
-          ))}
+        <p className="sidebar-label">Рідкість</p>
+        <div className="rarity-chips">
+          {RARITIES.map(r => {
+            const isActive = selRarities.includes(r.key)
+            return (
+              <button
+                key={r.key}
+                onClick={() => toggleRarity(r.key)}
+                className={`rarity-chip rarity-${r.key}${isActive ? '' : ' inactive'}`}
+              >
+                {RARITY_SHORT[r.key]}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      <div className="sidebar-section">
-        <p className="sidebar-section-title">Рідкість</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {RARITIES.map(r => (
-            <button
-              key={r.key}
-              onClick={() => toggleRarity(r.key)}
-              className={`rarity-filter-btn rarity-${r.key}${selRarities.includes(r.key) ? ' active' : ''}`}
-            >
-              <span style={{ fontSize: 9 }}>{r.stars > 0 ? '★'.repeat(r.stars) : '♛'}</span>
-              {r.label}
-              {selRarities.includes(r.key) && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: 12, height: 12, marginLeft: 'auto' }}>
-                  <path d="M5 12l5 5 9-9" />
-                </svg>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
+      {/* Available toggle */}
       <div className="sidebar-section">
         <button
           onClick={() => setAvailOnly(!availOnly)}
@@ -108,8 +115,11 @@ export function CardFilters({
       </div>
 
       {hasFilters && (
-        <button onClick={clearFilters} className="btn-ghost" style={{ width: '100%', fontSize: 12 }}>
-          ✕ Скинути фільтри
+        <button onClick={clearFilters} className="clear-filters-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 11, height: 11 }}>
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+          Скинути фільтри
         </button>
       )}
     </aside>
@@ -139,26 +149,35 @@ export function ResultsBar({
   toggleRarity: (r: Rarity) => void
   setAvailOnly: (v: boolean) => void
 }) {
+  const countLabel = (n: number) => `${n} ${n === 1 ? 'картка' : n < 5 ? 'картки' : 'карток'}`
+
   return (
     <div className="results-bar">
-      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-        {loading ? 'Завантаження...' : `${filtered} ${filtered === 1 ? 'картка' : filtered < 5 ? 'картки' : 'карток'}`}
-        {hasFilters && totalCards > 0 && ` з ${totalCards}`}
+      <span className="results-count">
+        {loading ? 'Завантаження...' : countLabel(filtered)}
+        {hasFilters && !loading && ` з ${totalCards}`}
       </span>
       {hasFilters && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div className="active-chips">
           {selColors.map(c => (
-            <span key={c} className="active-filter-chip" onClick={() => toggleColor(c)}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: COLOR_HEX[c], display: 'inline-block' }} />
-              {c} ✕
+            <span key={c} className="active-chip" onClick={() => toggleColor(c)}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLOR_HEX[c], display: 'inline-block' }} />
+              {c}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: 8, height: 8 }}><path d="M18 6L6 18M6 6l12 12" /></svg>
             </span>
           ))}
           {selRarities.map(r => (
-            <span key={r} className="active-filter-chip" onClick={() => toggleRarity(r)}>
-              {RARITIES.find(x => x.key === r)?.label} ✕
+            <span key={r} className="active-chip" onClick={() => toggleRarity(r)}>
+              {RARITY_SHORT[r as Rarity]}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: 8, height: 8 }}><path d="M18 6L6 18M6 6l12 12" /></svg>
             </span>
           ))}
-          {availOnly && <span className="active-filter-chip" onClick={() => setAvailOnly(false)}>Доступні ✕</span>}
+          {availOnly && (
+            <span className="active-chip" onClick={() => setAvailOnly(false)}>
+              Доступні
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: 8, height: 8 }}><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </span>
+          )}
         </div>
       )}
     </div>
