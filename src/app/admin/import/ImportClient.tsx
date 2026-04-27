@@ -1,22 +1,16 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { AdminLayout } from '@/components/AdminLayout'
+import { Toast } from '@/components/helpers'
+import type { ToastState } from '@/components/types'
 
 type CardSet = {
-  id: string
-  code: string
-  name: string
+  id: string; code: string; name: string
   type: 'BOOSTER' | 'STARTER_DECK' | 'PROMO'
-  cardCount: number
-  _count: { cards: number }
+  cardCount: number; _count: { cards: number }
 }
-
-type ImportResult = {
-  imported: number
-  skipped: number
-  updated: number
-  total: number
-}
+type ImportResult = { imported: number; skipped: number; updated: number; total: number }
 
 export default function ImportClient() {
   const [sets, setSets] = useState<CardSet[]>([])
@@ -25,7 +19,7 @@ export default function ImportClient() {
   const [refreshingPrices, setRefreshingPrices] = useState(false)
   const [importing, setImporting] = useState<string | null>(null)
   const [defaultQty, setDefaultQty] = useState(0)
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [toast, setToast] = useState<ToastState | null>(null)
   const [results, setResults] = useState<Record<string, ImportResult>>({})
 
   const fetchSets = useCallback(async () => {
@@ -33,16 +27,13 @@ export default function ImportClient() {
     try {
       const res = await fetch('/api/sets')
       if (res.ok) setSets(await res.json())
-    } finally {
-      setLoading(false)
-    }
+    } finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchSets() }, [fetchSets])
 
-  function showToast(msg: string, type: 'success' | 'error' = 'success') {
-    setToast({ msg, type })
-    setTimeout(() => setToast(null), 4000)
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
+    setToast({ message, type, id: Date.now() })
   }
 
   async function syncSets() {
@@ -53,11 +44,8 @@ export default function ImportClient() {
       const data = await res.json()
       showToast(`Синхронізовано: ${data.created} нових, ${data.skipped} вже існують`)
       fetchSets()
-    } catch {
-      showToast('Помилка синхронізації', 'error')
-    } finally {
-      setSyncing(false)
-    }
+    } catch { showToast('Помилка синхронізації', 'error') }
+    finally { setSyncing(false) }
   }
 
   async function refreshPrices() {
@@ -67,11 +55,8 @@ export default function ImportClient() {
       if (!res.ok) throw new Error()
       const data = await res.json()
       showToast(`Ціни оновлено: ${data.updated} карток з ${data.sets} сетів`)
-    } catch {
-      showToast('Помилка оновлення цін', 'error')
-    } finally {
-      setRefreshingPrices(false)
-    }
+    } catch { showToast('Помилка оновлення цін', 'error') }
+    finally { setRefreshingPrices(false) }
   }
 
   async function importSet(code: string) {
@@ -82,154 +67,107 @@ export default function ImportClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ setCode: code, defaultQuantity: defaultQty }),
       })
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}))
-        throw new Error(d.error || 'Помилка')
-      }
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Помилка') }
       const data: ImportResult = await res.json()
       setResults(prev => ({ ...prev, [code]: data }))
-      showToast(`${code}: ${data.imported} імпортовано, ${data.updated} оновлено, ${data.skipped} без змін`)
+      showToast(`${code}: ${data.imported} імпортовано, ${data.updated} оновлено`)
       fetchSets()
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Помилка імпорту', 'error')
-    } finally {
-      setImporting(null)
-    }
+    } finally { setImporting(null) }
   }
 
   const boosters = sets.filter(s => s.type === 'BOOSTER')
   const starters = sets.filter(s => s.type === 'STARTER_DECK')
-  const promos = sets.filter(s => s.type === 'PROMO')
+  const promos   = sets.filter(s => s.type === 'PROMO')
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', padding: '24px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <a href="/dashboard" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontFamily: 'var(--font-body)' }}>
-              ← Повернутися до колекції
-            </a>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: 'var(--text-gold)', margin: '4px 0 0' }}>
-              Імпорт карток
-            </h1>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0 0', fontFamily: 'var(--font-body)' }}>
-              Синхронізація з OPTCG API (optcgapi.com)
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <a href="/admin/users" className="btn-ghost" style={{ fontSize: 12, textDecoration: 'none' }}>
-              Команда
-            </a>
-          </div>
+    <AdminLayout
+      title="Імпорт карток"
+      subtitle="Синхронізація з OPTCG API"
+      actions={
+        <a href="/admin/users" className="btn-ghost" style={{ fontSize: 13, textDecoration: 'none' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
+          </svg>
+          Команда
+        </a>
+      }
+    >
+      {/* Controls */}
+      <div style={{
+        display: 'flex', gap: 12, marginBottom: 28,
+        flexWrap: 'wrap', alignItems: 'flex-end',
+        padding: '18px 20px',
+        background: 'var(--bg-raised)',
+        border: '1px solid var(--border)',
+        borderRadius: 14,
+      }}>
+        <button className="btn-gold" onClick={syncSets} disabled={syncing}>
+          {syncing ? <><span className="spinner" style={{ width: 15, height: 15 }} />Синхронізація...</> : (
+            <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
+              <path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+            </svg>Синхронізувати сети</>
+          )}
+        </button>
+
+        <button className="btn-ghost" onClick={refreshPrices} disabled={refreshingPrices}>
+          {refreshingPrices ? <><span className="spinner" style={{ width: 15, height: 15 }} />Оновлення...</> : (
+            <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
+              <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>Оновити ціни</>
+          )}
+        </button>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginLeft: 'auto' }}>
+          <label className="field-label">К-сть за замовч.</label>
+          <input
+            type="number" min={0} max={99} value={defaultQty}
+            onChange={e => setDefaultQty(Number(e.target.value))}
+            className="field-input" style={{ width: 88 }}
+          />
         </div>
-
-        {/* Controls */}
-        <div style={{ display: 'flex', gap: 14, marginBottom: 24, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <button className="btn-gold" onClick={syncSets} disabled={syncing} style={{ fontSize: 13 }}>
-            {syncing ? (
-              <><span className="spinner" style={{ borderTopColor: 'var(--bg-base)', borderColor: 'rgba(8,12,24,0.25)' }} />Синхронізація...</>
-            ) : (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
-                  <path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
-                </svg>
-                Синхронізувати сети з API
-              </>
-            )}
-          </button>
-
-          <button className="btn-ghost" onClick={refreshPrices} disabled={refreshingPrices} style={{ fontSize: 13 }}>
-            {refreshingPrices ? (
-              <><span className="spinner" style={{ width: 12, height: 12, borderWidth: 2, borderTopColor: 'var(--bg-base)', borderColor: 'rgba(8,12,24,0.25)' }} />Оновлення цін...</>
-            ) : (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
-                  <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                </svg>
-                Оновити ціни
-              </>
-            )}
-          </button>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
-              К-сть за замовч.
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={99}
-              value={defaultQty}
-              onChange={e => setDefaultQty(Number(e.target.value))}
-              className="field-input"
-              style={{ width: 80, fontSize: 13 }}
-            />
-          </div>
-        </div>
-
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
-            <span className="spinner" style={{ width: 32, height: 32, borderWidth: 3 }} />
-          </div>
-        ) : sets.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
-            <p style={{ fontSize: 15 }}>Сети ще не синхронізовані</p>
-            <p style={{ fontSize: 13 }}>Натисніть «Синхронізувати сети з API» щоб завантажити список</p>
-          </div>
-        ) : (
-          <>
-            {boosters.length > 0 && (
-              <SetSection title="Бустер пакети" sets={boosters} importing={importing} results={results} onImport={importSet} />
-            )}
-            {starters.length > 0 && (
-              <SetSection title="Стартові колоди" sets={starters} importing={importing} results={results} onImport={importSet} />
-            )}
-            {promos.length > 0 && (
-              <SetSection title="Промо" sets={promos} importing={importing} results={results} onImport={importSet} />
-            )}
-          </>
-        )}
       </div>
 
-      {toast && (
-        <div className="toast">
-          {toast.type === 'success' ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2" style={{ width: 18, height: 18, flexShrink: 0 }}>
-              <circle cx="12" cy="12" r="10" /><path d="M8 12l3 3 5-5" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2" style={{ width: 18, height: 18, flexShrink: 0 }}>
-              <circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" />
-            </svg>
-          )}
-          <span>{toast.msg}</span>
+      {/* Sets */}
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
+          <span className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
+        </div>
+      ) : sets.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ width: 52, height: 52, marginBottom: 14 }}>
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <p style={{ fontSize: 16, marginBottom: 6 }}>Сети ще не синхронізовані</p>
+          <p style={{ fontSize: 14 }}>Натисніть «Синхронізувати сети» щоб завантажити список з API</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          {boosters.length > 0 && <SetSection title="Бустер пакети" emoji="📦" sets={boosters} importing={importing} results={results} onImport={importSet} />}
+          {starters.length > 0 && <SetSection title="Стартові колоди" emoji="🃏" sets={starters} importing={importing} results={results} onImport={importSet} />}
+          {promos.length   > 0 && <SetSection title="Промо" emoji="⭐" sets={promos}   importing={importing} results={results} onImport={importSet} />}
         </div>
       )}
-    </div>
+
+      {toast && <Toast toast={toast} onDone={() => setToast(null)} />}
+    </AdminLayout>
   )
 }
 
-function SetSection({
-  title,
-  sets,
-  importing,
-  results,
-  onImport,
-}: {
-  title: string
-  sets: CardSet[]
-  importing: string | null
-  results: Record<string, ImportResult>
+function SetSection({ title, emoji, sets, importing, results, onImport }: {
+  title: string; emoji: string; sets: CardSet[]
+  importing: string | null; results: Record<string, ImportResult>
   onImport: (code: string) => void
 }) {
   return (
-    <section style={{ marginBottom: 28 }}>
-      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--text-gold)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <section>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 19, color: 'var(--text-gold)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 9 }}>
+        <span>{emoji}</span>
         {title}
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>({sets.length})</span>
+        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>({sets.length})</span>
       </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 12 }}>
         {sets.map(s => (
           <SetCard key={s.id} set={s} importing={importing === s.code} result={results[s.code]} onImport={() => onImport(s.code)} />
         ))}
@@ -238,52 +176,35 @@ function SetSection({
   )
 }
 
-function SetCard({
-  set,
-  importing,
-  result,
-  onImport,
-}: {
-  set: CardSet
-  importing: boolean
-  result?: ImportResult
-  onImport: () => void
+function SetCard({ set, importing, result, onImport }: {
+  set: CardSet; importing: boolean; result?: ImportResult; onImport: () => void
 }) {
   const hasCards = set._count.cards > 0
-
   return (
     <div style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border)',
-      borderRadius: 12,
-      padding: '14px 16px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8,
+      background: 'var(--bg-card)', border: '1px solid var(--border)',
+      borderRadius: 12, padding: '16px 18px',
+      display: 'flex', flexDirection: 'column', gap: 10,
+      transition: 'border-color 0.15s',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: 'var(--text-gold)' }}>{set.code}</span>
-          <p style={{ fontSize: 12, color: 'var(--text-primary)', margin: '2px 0 0', fontFamily: 'var(--font-body)', lineHeight: 1.3 }}>{set.name}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: 'var(--text-gold)' }}>{set.code}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-primary)', marginTop: 2, fontFamily: 'var(--font-body)', lineHeight: 1.35 }}>{set.name}</div>
         </div>
         {hasCards && (
           <span style={{
-            padding: '2px 8px',
-            background: 'rgba(34,197,94,0.15)',
-            border: '1px solid rgba(34,197,94,0.3)',
-            borderRadius: 999,
-            fontSize: 10,
-            color: '#15803d',
-            fontFamily: 'var(--font-body)',
-            whiteSpace: 'nowrap',
+            padding: '3px 9px', whiteSpace: 'nowrap',
+            background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)',
+            borderRadius: 99, fontSize: 11, color: '#34d399', fontFamily: 'var(--font-body)',
           }}>
-            {set._count.cards} карток
+            {set._count.cards} карт
           </span>
         )}
       </div>
 
       {result && (
-        <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', padding: '6px 10px', background: 'var(--bg-elevated)', borderRadius: 8 }}>
           +{result.imported} нових · {result.updated} оновлено · {result.skipped} без змін
         </div>
       )}
@@ -292,15 +213,9 @@ function SetCard({
         className={hasCards ? 'btn-ghost' : 'btn-gold'}
         onClick={onImport}
         disabled={importing}
-        style={{ fontSize: 11, padding: '6px 12px', alignSelf: 'flex-start' }}
+        style={{ fontSize: 13, alignSelf: 'flex-start' }}
       >
-        {importing ? (
-          <><span className="spinner" style={{ width: 12, height: 12, borderWidth: 2, borderTopColor: 'var(--bg-base)', borderColor: 'rgba(8,12,24,0.25)' }} />Імпорт...</>
-        ) : hasCards ? (
-          'Оновити'
-        ) : (
-          'Імпортувати'
-        )}
+        {importing ? <><span className="spinner" style={{ width: 14, height: 14 }} />Імпорт...</> : hasCards ? 'Оновити' : 'Імпортувати'}
       </button>
     </div>
   )

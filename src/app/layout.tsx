@@ -20,8 +20,18 @@ const libreBaskerville = Libre_Baskerville({
 });
 
 export const metadata: Metadata = {
-  title: "Thousand Seas Archive – One Piece TCG Team Collection",
-  description: "Password-protected One Piece TCG team collection and borrow tracker.",
+  title: "Thousand Seas Archive",
+  description: "One Piece TCG — Crew Collection Tracker",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "TSA",
+  },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {

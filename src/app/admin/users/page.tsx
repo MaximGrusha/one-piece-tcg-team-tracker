@@ -9,7 +9,7 @@ export default async function AdminUsersPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div>
       <AdminUsersClient currentUserId={session.user.id} />
     </div>
   )
