@@ -35,11 +35,13 @@ export async function POST(req: NextRequest) {
       for (const c of apiCards) {
         const mktPrice = parseFloat(c.market_price)
         const invPrice = parseFloat(c.inventory_price)
-        if (isNaN(mktPrice) && isNaN(invPrice)) continue
+        const hasMkt = !isNaN(mktPrice) && mktPrice > 0
+        const hasInv = !isNaN(invPrice) && invPrice > 0
+        if (!hasMkt && !hasInv) continue
 
         const data: Record<string, unknown> = { priceUpdatedAt: new Date() }
-        if (!isNaN(mktPrice)) data.marketPrice = mktPrice
-        if (!isNaN(invPrice)) data.inventoryPrice = invPrice
+        if (hasMkt) data.marketPrice = mktPrice
+        if (hasInv) data.inventoryPrice = invPrice
 
         try {
           await prisma.card.update({

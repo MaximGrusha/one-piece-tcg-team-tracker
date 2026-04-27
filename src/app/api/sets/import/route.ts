@@ -49,6 +49,8 @@ export async function POST(req: NextRequest) {
 
       const mktPrice = parseFloat(c.market_price)
       const invPrice = parseFloat(c.inventory_price)
+      const hasMkt = !isNaN(mktPrice) && mktPrice > 0
+      const hasInv = !isNaN(invPrice) && invPrice > 0
 
       if (existing) {
         // Update metadata if card exists but has no image or cardType
@@ -66,10 +68,10 @@ export async function POST(req: NextRequest) {
         if (existing.counter == null && !isNaN(counter)) updates.counter = counter
         if (!existing.attribute && c.attribute) updates.attribute = c.attribute
 
-        // Always update prices
-        if (!isNaN(mktPrice)) updates.marketPrice = mktPrice
-        if (!isNaN(invPrice)) updates.inventoryPrice = invPrice
-        if (!isNaN(mktPrice) || !isNaN(invPrice)) updates.priceUpdatedAt = new Date()
+        // Always update prices (skip zero/NaN)
+        if (hasMkt) updates.marketPrice = mktPrice
+        if (hasInv) updates.inventoryPrice = invPrice
+        if (hasMkt || hasInv) updates.priceUpdatedAt = new Date()
 
         if (Object.keys(updates).length > 0) {
           await prisma.card.update({ where: { setCode: cardSetId }, data: updates })
@@ -100,9 +102,9 @@ export async function POST(req: NextRequest) {
           attribute: c.attribute || null,
           cardText: c.card_text || null,
           setId: cardSet.id,
-          marketPrice: isNaN(mktPrice) ? null : mktPrice,
-          inventoryPrice: isNaN(invPrice) ? null : invPrice,
-          priceUpdatedAt: (!isNaN(mktPrice) || !isNaN(invPrice)) ? new Date() : null,
+          marketPrice: hasMkt ? mktPrice : null,
+          inventoryPrice: hasInv ? invPrice : null,
+          priceUpdatedAt: (hasMkt || hasInv) ? new Date() : null,
         },
       })
       imported++
