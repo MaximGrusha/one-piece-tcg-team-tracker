@@ -52,6 +52,16 @@ export type Borrow = {
   items: BorrowItem[]
 }
 
+export type CardSet = {
+  id: string
+  code: string
+  name: string
+  type: 'BOOSTER' | 'STARTER_DECK' | 'PROMO'
+  releaseDate: string | null
+  cardCount: number
+  _count?: { cards: number }
+}
+
 export type ToastState = { message: string; type: 'success' | 'error'; id: number }
 
 export type CardFormData = {

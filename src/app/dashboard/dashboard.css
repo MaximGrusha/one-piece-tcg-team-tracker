@@ -128,6 +128,44 @@
   padding: 0 2px;
 }
 
+/* ── Set filter list ── */
+.set-filter-list {
+  display: flex; flex-direction: column; gap: 1px;
+  max-height: 220px; overflow-y: auto;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+.set-group-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-muted); padding: 8px 6px 3px;
+}
+.set-filter-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px;
+  background: transparent; border: none; border-radius: 6px;
+  color: var(--text-secondary); font-family: var(--font-body);
+  font-size: 12px; cursor: pointer; text-align: left; width: 100%;
+  transition: background 0.1s, color 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+.set-filter-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.set-filter-btn.active { background: rgba(217,119,6,0.12); color: #d97706; }
+.set-filter-code {
+  font-weight: 700; font-size: 11px; flex-shrink: 0;
+  width: 48px; color: inherit;
+}
+.set-filter-name {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11px;
+}
+.set-filter-count {
+  font-size: 10px; color: var(--text-muted);
+  background: rgba(255,255,255,0.06);
+  padding: 1px 5px; border-radius: 99px; flex-shrink: 0;
+}
+
 /* Color grid */
 .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .color-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
@@ -653,36 +691,48 @@
   .dash-sidebar {
     width: 100%; height: auto; position: static;
     border-right: none; border-bottom: 1px solid var(--border-faint);
-    display: none; padding: 16px 16px 20px; overflow-y: visible;
+    display: none; padding: 14px 14px 18px; overflow-y: visible;
   }
   .dash-sidebar.open { display: flex; }
+  /* set list full height on mobile */
+  .set-filter-list { max-height: none; }
   .tabs-bar { display: none; }
   .nav-stats { display: none; }
   .nav-actions { display: none; }
   .nav-burger { display: flex; }
   .nav-add-mobile { display: inline-flex; margin-left: auto; }
-  .top-nav-inner { padding: 0 16px; height: 56px; }
-  .dash-main { padding: 14px 16px 88px; }
-  .card-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .top-nav-inner { padding: 0 14px; height: 54px; }
+  .dash-main { padding: 12px 12px 88px; }
+  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .wish-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .bottom-nav { display: block; }
   .filter-toggle { display: inline-flex; }
-  .borrows-panel { padding: 16px 16px 88px; }
-  .wish-panel { padding: 14px 16px 88px; }
-  .toast { right: 12px; left: 12px; bottom: calc(74px + env(safe-area-inset-bottom)); }
-  .btn-gold, .btn-ghost, .btn-danger { min-height: 46px; }
-  .field-input { min-height: 48px; font-size: 16px; }
-  .color-grid { grid-template-columns: repeat(3, 1fr); }
-  .color-btn:last-child:nth-child(odd) { grid-column: auto; }
+  .borrows-panel { padding: 14px 12px 88px; }
+  .wish-panel { padding: 12px 12px 88px; }
+  .toast { right: 10px; left: 10px; bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .btn-gold, .btn-ghost, .btn-danger { min-height: 44px; }
+  .field-input { min-height: 46px; font-size: 16px; }
+  .color-grid { grid-template-columns: repeat(2, 1fr); }
+  /* bigger card info on mobile */
+  .card-name { font-size: 15px; }
+  .card-avail-text { font-size: 12px; }
+  .card-info { padding: 10px 11px 9px; gap: 4px; }
+  .card-actions { padding: 0 8px 9px; gap: 5px; }
+  .card-accent { height: 4px; }
+  /* set picker on mobile */
+  .set-picker-box { max-height: 85vh; }
 }
 
 @media (max-width: 480px) {
-  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .card-info { padding: 10px 11px 8px; }
-  .card-name { font-size: 14px; }
-  .card-avail-text { font-size: 12px; }
-  .card-actions { padding: 0 8px 9px; gap: 5px; }
-  .modal-box { border-radius: 20px 20px 0 0; max-height: 90vh; align-self: flex-end; }
+  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .card-name { font-size: 13px; }
+  .card-avail-text { font-size: 11px; }
+  .card-info { padding: 8px 9px 7px; gap: 3px; }
+  .card-actions { padding: 0 7px 8px; gap: 4px; }
+  .card-set-code { font-size: 10px; }
+  .modal-box { border-radius: 20px 20px 0 0; max-height: 92vh; align-self: flex-end; }
   .modal-overlay { align-items: flex-end; padding: 0; }
+  .set-picker-overlay { align-items: flex-end; padding: 0; }
+  .set-picker-box { border-radius: 20px 20px 0 0; max-height: 85vh; max-width: 100%; }
   .borrow-item { font-size: 13px; }
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import './dashboard.css'
 
-import type { Card, Borrow, Color, Rarity, ToastState } from '@/components/types'
+import type { Card, Borrow, CardSet, Color, Rarity, ToastState } from '@/components/types'
 import { Spinner, Toast } from '@/components/helpers'
 import { DashboardHeader } from '@/components/DashboardHeader'
 import { CardFilters, ResultsBar } from '@/components/CardFilters'
@@ -30,6 +30,8 @@ export default function DashboardClient({
   const [loading, setLoading] = useState(true)
   const [borrowsLoading, setBorrowsLoading] = useState(false)
 
+  const [sets, setSets] = useState<CardSet[]>([])
+  const [selSetCode, setSelSetCode] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [selColors, setSelColors] = useState<Color[]>([])
   const [selRarities, setSelRarities] = useState<Rarity[]>([])
@@ -70,16 +72,20 @@ export default function DashboardClient({
   useEffect(() => { fetchCards() }, [fetchCards])
   useEffect(() => { if (tab === 'borrows') fetchBorrows() }, [tab, fetchBorrows])
   useEffect(() => {
+    fetch('/api/sets').then(r => r.ok ? r.json() : []).then(setSets).catch(() => {})
+  }, [])
+  useEffect(() => {
     fetch('/api/wishlist').then(r => r.ok ? r.json() : []).then((items: unknown[]) => setWishlistCount(items.length)).catch(() => {})
   }, [])
 
   const filtered = useMemo(() => cards.filter(card => {
+    if (selSetCode && !card.setCode.startsWith(selSetCode + '-') && card.setCode !== selSetCode) return false
     if (search && !card.name.toLowerCase().includes(search.toLowerCase()) && !card.setCode.toLowerCase().includes(search.toLowerCase())) return false
     if (selColors.length > 0 && !selColors.includes(card.color)) return false
     if (selRarities.length > 0 && !selRarities.includes(card.rarity)) return false
     if (availOnly && card.availableQuantity === 0) return false
     return true
-  }), [cards, search, selColors, selRarities, availOnly])
+  }), [cards, search, selColors, selRarities, availOnly, selSetCode])
 
   const stats = useMemo(() => {
     const total = cards.reduce((s, c) => s + c.totalQuantity, 0)
@@ -92,7 +98,7 @@ export default function DashboardClient({
 
   function toggleColor(c: Color) { setSelColors(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c]) }
   function toggleRarity(r: Rarity) { setSelRarities(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r]) }
-  function clearFilters() { setSearch(''); setSelColors([]); setSelRarities([]); setAvailOnly(false) }
+  function clearFilters() { setSearch(''); setSelColors([]); setSelRarities([]); setAvailOnly(false); setSelSetCode(null) }
 
   async function handleReturn(id: string) {
     try {
@@ -112,7 +118,7 @@ export default function DashboardClient({
     } catch { showToast('Помилка при видаленні', 'error') }
   }
 
-  const hasFilters = !!(search || selColors.length || selRarities.length || availOnly)
+  const hasFilters = !!(search || selColors.length || selRarities.length || availOnly || selSetCode)
 
   return (
     <div className="app-shell">
@@ -130,20 +136,15 @@ export default function DashboardClient({
         {tab === 'cards' && (
           <div className="dash-layout">
             <CardFilters
-              search={search}
-              setSearch={setSearch}
-              selColors={selColors}
-              toggleColor={toggleColor}
-              selRarities={selRarities}
-              toggleRarity={toggleRarity}
-              availOnly={availOnly}
-              setAvailOnly={setAvailOnly}
-              hasFilters={hasFilters}
-              clearFilters={clearFilters}
-              filtered={filtered.length}
-              totalCards={cards.length}
-              loading={loading}
-              open={filtersOpen}
+              search={search} setSearch={setSearch}
+              selColors={selColors} toggleColor={toggleColor}
+              selRarities={selRarities} toggleRarity={toggleRarity}
+              availOnly={availOnly} setAvailOnly={setAvailOnly}
+              selSetCode={selSetCode} setSelSetCode={setSelSetCode}
+              sets={sets}
+              hasFilters={hasFilters} clearFilters={clearFilters}
+              filtered={filtered.length} totalCards={cards.length}
+              loading={loading} open={filtersOpen}
             />
 
             <main className="dash-main">
@@ -162,16 +163,12 @@ export default function DashboardClient({
               </button>
 
               <ResultsBar
-                filtered={filtered.length}
-                totalCards={cards.length}
-                loading={loading}
-                hasFilters={hasFilters}
-                selColors={selColors}
-                selRarities={selRarities}
-                availOnly={availOnly}
-                toggleColor={toggleColor}
-                toggleRarity={toggleRarity}
-                setAvailOnly={setAvailOnly}
+                filtered={filtered.length} totalCards={cards.length}
+                loading={loading} hasFilters={hasFilters}
+                selColors={selColors} selRarities={selRarities}
+                availOnly={availOnly} selSetCode={selSetCode}
+                toggleColor={toggleColor} toggleRarity={toggleRarity}
+                setAvailOnly={setAvailOnly} setSelSetCode={setSelSetCode}
               />
 
               {loading ? (

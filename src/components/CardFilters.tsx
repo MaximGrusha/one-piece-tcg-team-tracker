@@ -1,23 +1,24 @@
 'use client'
 
 import { COLORS, RARITIES, COLOR_HEX } from './constants'
-import type { Color, Rarity } from './types'
+import type { Color, Rarity, CardSet } from './types'
 
 const RARITY_SHORT: Record<Rarity, string> = {
   COMMON: 'C', UNCOMMON: 'UC', RARE: 'R', SUPER_RARE: 'SR', SECRET_RARE: 'SEC', LEADER: 'L',
 }
 
+const SET_TYPE_LABEL: Record<string, string> = {
+  BOOSTER: 'Бустери', STARTER_DECK: 'Стартові деки', PROMO: 'Промо / The Best',
+}
+
 export function CardFilters({
-  search,
-  setSearch,
-  selColors,
-  toggleColor,
-  selRarities,
-  toggleRarity,
-  availOnly,
-  setAvailOnly,
-  hasFilters,
-  clearFilters,
+  search, setSearch,
+  selColors, toggleColor,
+  selRarities, toggleRarity,
+  availOnly, setAvailOnly,
+  selSetCode, setSelSetCode,
+  sets,
+  hasFilters, clearFilters,
   open,
 }: {
   search: string
@@ -28,6 +29,9 @@ export function CardFilters({
   toggleRarity: (r: Rarity) => void
   availOnly: boolean
   setAvailOnly: (v: boolean) => void
+  selSetCode: string | null
+  setSelSetCode: (v: string | null) => void
+  sets: CardSet[]
   hasFilters: boolean
   clearFilters: () => void
   filtered: number
@@ -35,6 +39,12 @@ export function CardFilters({
   loading: boolean
   open?: boolean
 }) {
+  const grouped = sets.reduce<Record<string, CardSet[]>>((acc, s) => {
+    if (!acc[s.type]) acc[s.type] = []
+    acc[s.type].push(s)
+    return acc
+  }, {})
+
   return (
     <aside className={`dash-sidebar${open ? ' open' : ''}`}>
       {/* Search */}
@@ -51,6 +61,42 @@ export function CardFilters({
         />
       </div>
 
+      {/* Set filter */}
+      <div className="sidebar-section">
+        <p className="sidebar-label">Випуск</p>
+        <div className="set-filter-list">
+          <button
+            className={`set-filter-btn${selSetCode === null ? ' active' : ''}`}
+            onClick={() => setSelSetCode(null)}
+          >
+            <span className="set-filter-code">Всі</span>
+            <span className="set-filter-name">Вся колекція</span>
+          </button>
+          {(['BOOSTER', 'STARTER_DECK', 'PROMO'] as const).map(type => {
+            const group = grouped[type]
+            if (!group?.length) return null
+            return (
+              <div key={type}>
+                <p className="set-group-label">{SET_TYPE_LABEL[type]}</p>
+                {group.map(s => (
+                  <button
+                    key={s.code}
+                    className={`set-filter-btn${selSetCode === s.code ? ' active' : ''}`}
+                    onClick={() => setSelSetCode(selSetCode === s.code ? null : s.code)}
+                  >
+                    <span className="set-filter-code">{s.code}</span>
+                    <span className="set-filter-name">{s.name}</span>
+                    {s._count && s._count.cards > 0 && (
+                      <span className="set-filter-count">{s._count.cards}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Color filters */}
       <div className="sidebar-section">
         <p className="sidebar-label">Колір</p>
@@ -63,18 +109,12 @@ export function CardFilters({
                 onClick={() => toggleColor(c.key)}
                 className={`color-btn${isActive ? ` active active-${c.key}` : ''}`}
               >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: c.key === 'MULTICOLOR'
-                      ? 'conic-gradient(#ef4444 0deg, #3b82f6 90deg, #22c55e 180deg, #a855f7 270deg)'
-                      : c.cls,
-                    flexShrink: 0,
-                    display: 'inline-block',
-                  }}
-                />
+                <span style={{
+                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0, display: 'inline-block',
+                  background: c.key === 'MULTICOLOR'
+                    ? 'conic-gradient(#ef4444 0deg, #3b82f6 90deg, #22c55e 180deg, #a855f7 270deg)'
+                    : c.cls,
+                }} />
                 {c.label}
               </button>
             )
@@ -103,13 +143,8 @@ export function CardFilters({
 
       {/* Available toggle */}
       <div className="sidebar-section">
-        <button
-          onClick={() => setAvailOnly(!availOnly)}
-          className={`avail-toggle${availOnly ? ' active' : ''}`}
-        >
-          <span className="toggle-track">
-            <span className="toggle-thumb" />
-          </span>
+        <button onClick={() => setAvailOnly(!availOnly)} className={`avail-toggle${availOnly ? ' active' : ''}`}>
+          <span className="toggle-track"><span className="toggle-thumb" /></span>
           Тільки доступні
         </button>
       </div>
@@ -119,7 +154,7 @@ export function CardFilters({
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 11, height: 11 }}>
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>
-          Скинути фільтри
+          Скинути всі
         </button>
       )}
     </aside>
@@ -127,27 +162,14 @@ export function CardFilters({
 }
 
 export function ResultsBar({
-  filtered,
-  totalCards,
-  loading,
-  hasFilters,
-  selColors,
-  selRarities,
-  availOnly,
-  toggleColor,
-  toggleRarity,
-  setAvailOnly,
+  filtered, totalCards, loading, hasFilters,
+  selColors, selRarities, availOnly, selSetCode,
+  toggleColor, toggleRarity, setAvailOnly, setSelSetCode,
 }: {
-  filtered: number
-  totalCards: number
-  loading: boolean
-  hasFilters: boolean
-  selColors: Color[]
-  selRarities: Rarity[]
-  availOnly: boolean
-  toggleColor: (c: Color) => void
-  toggleRarity: (r: Rarity) => void
-  setAvailOnly: (v: boolean) => void
+  filtered: number; totalCards: number; loading: boolean; hasFilters: boolean
+  selColors: Color[]; selRarities: Rarity[]; availOnly: boolean; selSetCode: string | null
+  toggleColor: (c: Color) => void; toggleRarity: (r: Rarity) => void
+  setAvailOnly: (v: boolean) => void; setSelSetCode: (v: string | null) => void
 }) {
   const countLabel = (n: number) => `${n} ${n === 1 ? 'картка' : n < 5 ? 'картки' : 'карток'}`
 
@@ -159,6 +181,12 @@ export function ResultsBar({
       </span>
       {hasFilters && (
         <div className="active-chips">
+          {selSetCode && (
+            <span className="active-chip" onClick={() => setSelSetCode(null)}>
+              {selSetCode}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: 8, height: 8 }}><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </span>
+          )}
           {selColors.map(c => (
             <span key={c} className="active-chip" onClick={() => toggleColor(c)}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLOR_HEX[c], display: 'inline-block' }} />
