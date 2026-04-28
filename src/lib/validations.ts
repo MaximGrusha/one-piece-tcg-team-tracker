@@ -61,6 +61,8 @@ export const UpdateCardSchema = z.object({
     .or(z.literal(""))
     .or(z.null())
     .transform((v) => (v === "" ? null : v)),
+  setCode: z.string().min(1).max(30).optional(),
+  setId: z.string().optional().or(z.null()),
 });
 
 export const CreateWishlistSchema = z.object({

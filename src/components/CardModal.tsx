@@ -140,11 +140,13 @@ export function CardModal({
       const url = card ? `/api/cards/${card.id}` : '/api/cards'
       const method = card ? 'PUT' : 'POST'
       if (card) {
-        const body = {
+        const body: Record<string, unknown> = {
           name: form.name, imageUrl: form.imageUrl || null,
           rarity: form.rarity, color: form.color,
           notes: form.notes || null, cardmarketUrl: form.cardmarketUrl || null,
         }
+        if (form.setCode && form.setCode !== card.setCode) body.setCode = form.setCode
+        if (selSet) body.setId = selSet.id
         const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Помилка')
       } else {
@@ -217,11 +219,46 @@ export function CardModal({
                 </div>
               )}
 
-              {/* Edit: show setCode readonly */}
+              {/* Set picker — both create and edit */}
               {isEdit && (
                 <div className="field-group">
-                  <label className="field-label">Код картки</label>
-                  <input type="text" value={form.setCode} className="field-input" disabled style={{ opacity: 0.5 }} />
+                  <label className="field-label">Випуск</label>
+                  <div className="set-select-row">
+                    <button
+                      type="button"
+                      className="set-select-btn"
+                      onClick={() => setShowSetPicker(true)}
+                    >
+                      {selSet ? (
+                        <>
+                          <span className="set-select-code">{selSet.code}</span>
+                          <span className="set-select-name">{selSet.name}</span>
+                        </>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>{form.setCode || 'Вибрати випуск...'}</span>
+                      )}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14, marginLeft: 'auto', flexShrink: 0 }}>
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </button>
+                    <input
+                      type="text"
+                      placeholder="001"
+                      value={cardNum}
+                      onChange={e => {
+                        const num = e.target.value.replace(/\D/g, '').slice(0, 4)
+                        setCardNum(num)
+                        if (selSet) setForm(f => ({ ...f, setCode: `${selSet.code}-${num}` }))
+                      }}
+                      className="field-input set-num-input"
+                      maxLength={4}
+                    />
+                  </div>
+                  {(selSet || cardNum) && (
+                    <p className="set-preview-code">
+                      Новий код: <strong>{selSet ? `${selSet.code}-${cardNum}` : form.setCode}</strong>
+                    </p>
+                  )}
                 </div>
               )}
 
