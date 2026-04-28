@@ -38,8 +38,8 @@
 .stat-chip {
   display: flex; flex-direction: column; align-items: center;
   padding: 6px 14px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
   border-radius: 9px;
   min-width: 58px;
   transition: border-color 0.15s;
@@ -91,8 +91,8 @@
   width: 224px;
   flex-shrink: 0;
   padding: 20px 14px;
-  border-right: 1px solid rgba(240,180,41,0.10);
-  background: rgba(8,11,18,0.7);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  background: var(--bg-surface);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -114,7 +114,8 @@
   font-size: 14px;
   height: 40px;
   padding-top: 0; padding-bottom: 0;
-  background: var(--bg-elevated);
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.07);
 }
 
 /* Section */
@@ -128,31 +129,32 @@
 }
 
 /* Color grid */
-.color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .color-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .color-btn {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 7px;
   padding: 7px 9px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 8px;
   color: var(--text-secondary);
   font-family: var(--font-body);
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s;
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
   -webkit-tap-highlight-color: transparent;
 }
-.color-btn:hover { background: var(--bg-surface); border-color: var(--border-strong); color: var(--text-primary); }
-.color-btn.active { background: var(--gold-faint); border-color: var(--border-gold); color: var(--text-primary); }
-.color-btn.active-RED    { border-color: rgba(239,68,68,0.45);  background: rgba(239,68,68,0.09); }
-.color-btn.active-BLUE   { border-color: rgba(59,130,246,0.45);  background: rgba(59,130,246,0.09); }
-.color-btn.active-GREEN  { border-color: rgba(34,197,94,0.45);  background: rgba(34,197,94,0.09); }
-.color-btn.active-PURPLE { border-color: rgba(168,85,247,0.45); background: rgba(168,85,247,0.09); }
-.color-btn.active-BLACK  { border-color: rgba(148,163,184,0.45);background: rgba(148,163,184,0.09); }
-.color-btn.active-YELLOW { border-color: rgba(234,179,8,0.45);  background: rgba(234,179,8,0.09); }
-.color-btn.active-MULTICOLOR { border-color: rgba(240,180,41,0.45); background: rgba(240,180,41,0.07); }
+.color-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+/* active: only the dot color stands out — just a faint tinted bg + colored border */
+.color-btn.active { border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; }
+.color-btn.active-RED    { border-color: rgba(239,68,68,0.40); }
+.color-btn.active-BLUE   { border-color: rgba(59,130,246,0.40); }
+.color-btn.active-GREEN  { border-color: rgba(34,197,94,0.40); }
+.color-btn.active-PURPLE { border-color: rgba(168,85,247,0.40); }
+.color-btn.active-BLACK  { border-color: rgba(148,163,184,0.40); }
+.color-btn.active-YELLOW { border-color: rgba(234,179,8,0.40); }
+.color-btn.active-MULTICOLOR { border-color: rgba(217,119,6,0.45); }
 
 /* Rarity chips */
 .rarity-chips { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -251,8 +253,8 @@
 
 /* ── Card tile ── */
 .card-tile {
-  background: linear-gradient(180deg, var(--bg-card) 0%, rgba(28,36,56,0.85) 100%);
-  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border: 1px solid rgba(255,255,255,0.07);
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex; flex-direction: column;
@@ -260,8 +262,8 @@
   position: relative;
 }
 .card-tile:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px var(--card-color, rgba(240,180,41,0.35));
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px var(--card-color, rgba(217,119,6,0.30));
   border-color: transparent;
 }
 
