@@ -20,8 +20,9 @@ model User {
   displayName  String
   role         Role     @default(MEMBER)
 
-  borrows      Borrow[]
-  activityLogs ActivityLog[]
+  borrows       Borrow[]
+  activityLogs  ActivityLog[]
+  wishlistItems WishlistItem[]
 }
 
 model CardSet {
@@ -63,6 +64,7 @@ model Card {
   marketPrice     Float?        // USD from OPTCG API
   inventoryPrice  Float?        // USD from OPTCG API
   priceUpdatedAt  DateTime?     // last price sync
+  cardmarketUrl   String?       // direct Cardmarket product link
 
   setId           String?
   set             CardSet?      @relation(fields: [setId], references: [id])
@@ -131,6 +133,20 @@ enum SetType {
   BOOSTER
   STARTER_DECK
   PROMO
+}
+
+model WishlistItem {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+
+  name          String
+  imageUrl      String?
+  cardmarketUrl String?
+  notes         String?
+  priority      Int      @default(0)   // 0=normal, 1=high, 2=urgent
+
+  addedById     String?
+  addedBy       User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
 }
 
 model ActivityLog {

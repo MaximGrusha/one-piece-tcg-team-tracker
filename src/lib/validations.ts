@@ -54,6 +54,33 @@ export const UpdateCardSchema = z.object({
   totalQuantity: z.number().int().min(0).max(999).optional(),
   availableQuantity: z.number().int().min(0).max(999).optional(),
   notes: z.string().max(500).nullable().optional(),
+  cardmarketUrl: z
+    .string()
+    .url()
+    .optional()
+    .or(z.literal(""))
+    .or(z.null())
+    .transform((v) => (v === "" ? null : v)),
+});
+
+export const CreateWishlistSchema = z.object({
+  name: z.string().min(1).max(200),
+  imageUrl: z
+    .string()
+    .url()
+    .optional()
+    .or(z.literal(""))
+    .or(z.null())
+    .transform((v) => v || null),
+  cardmarketUrl: z
+    .string()
+    .url()
+    .optional()
+    .or(z.literal(""))
+    .or(z.null())
+    .transform((v) => v || null),
+  notes: z.string().max(500).optional().or(z.null()).transform((v) => v ?? null),
+  priority: z.number().int().min(0).max(2).default(0),
 });
 
 export const CreateBorrowSchema = z.object({

@@ -61,32 +61,32 @@ export function CardTile({
             {available === 0 ? 'Недоступно' : `${available}/${total} вільно`}
           </span>
           {card.marketPrice != null && card.marketPrice > 0 ? (
-            <span className="card-price" title="TCGPlayer USD">
-              ${card.marketPrice.toFixed(2)}
-            </span>
-          ) : (
-            /* Cardmarket + TCGPlayer quick links when no local price */
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              <span className="card-price" title="TCGPlayer USD">${card.marketPrice.toFixed(2)}</span>
               <a
-                href={cardmarketUrl(card.name)}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={card.cardmarketUrl || cardmarketUrl(card.name)}
+                target="_blank" rel="noopener noreferrer"
                 className="price-link price-link--cm"
                 title="Переглянути на Cardmarket"
                 onClick={e => e.stopPropagation()}
-              >
-                CM
-              </a>
+              >CM</a>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 4 }}>
+              <a
+                href={card.cardmarketUrl || cardmarketUrl(card.name)}
+                target="_blank" rel="noopener noreferrer"
+                className="price-link price-link--cm"
+                title="Переглянути на Cardmarket"
+                onClick={e => e.stopPropagation()}
+              >CM</a>
               <a
                 href={tcgplayerUrl(card.name)}
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer"
                 className="price-link price-link--tcp"
                 title="Переглянути на TCGPlayer"
                 onClick={e => e.stopPropagation()}
-              >
-                TCP
-              </a>
+              >TCP</a>
             </div>
           )}
         </div>

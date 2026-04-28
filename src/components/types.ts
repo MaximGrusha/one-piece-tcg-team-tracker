@@ -22,6 +22,18 @@ export type Card = {
   marketPrice?: number | null
   inventoryPrice?: number | null
   priceUpdatedAt?: string | null
+  cardmarketUrl?: string | null
+}
+
+export type WishlistItem = {
+  id: string
+  name: string
+  imageUrl: string | null
+  cardmarketUrl: string | null
+  notes: string | null
+  priority: number
+  createdAt: string
+  addedBy?: { displayName: string } | null
 }
 
 export type BorrowItem = {
@@ -50,4 +62,5 @@ export type CardFormData = {
   color: Color
   totalQuantity: number
   notes: string
+  cardmarketUrl: string
 }

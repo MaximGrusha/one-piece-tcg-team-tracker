@@ -15,7 +15,7 @@ export function CardModal({
 }) {
   const [form, setForm] = useState<CardFormData>(
     card
-      ? { name: card.name, setCode: card.setCode, imageUrl: card.imageUrl || '', rarity: card.rarity, color: card.color, totalQuantity: card.totalQuantity, notes: card.notes || '' }
+      ? { name: card.name, setCode: card.setCode, imageUrl: card.imageUrl || '', rarity: card.rarity, color: card.color, totalQuantity: card.totalQuantity, notes: card.notes || '', cardmarketUrl: card.cardmarketUrl || '' }
       : DEFAULT_CARD_FORM
   )
   const [loading, setLoading] = useState(false)
@@ -34,7 +34,7 @@ export function CardModal({
       const method = card ? 'PUT' : 'POST'
       const body = { ...form, totalQuantity: Number(form.totalQuantity) }
       if (card) {
-        const editBody = { name: body.name, imageUrl: body.imageUrl || null, rarity: body.rarity, color: body.color, notes: body.notes || null }
+        const editBody = { name: body.name, imageUrl: body.imageUrl || null, rarity: body.rarity, color: body.color, notes: body.notes || null, cardmarketUrl: body.cardmarketUrl || null }
         const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editBody) })
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Помилка')
       } else {
@@ -98,6 +98,11 @@ export function CardModal({
             <div className="field-group">
               <label className="field-label">URL зображення</label>
               <input type="url" placeholder="https://..." value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)} className="field-input" />
+            </div>
+
+            <div className="field-group">
+              <label className="field-label">Посилання Cardmarket</label>
+              <input type="url" placeholder="https://www.cardmarket.com/en/OnePiece/Products/..." value={form.cardmarketUrl} onChange={e => set('cardmarketUrl', e.target.value)} className="field-input" />
             </div>
 
             <div className="field-group">

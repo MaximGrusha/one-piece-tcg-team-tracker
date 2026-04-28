@@ -25,5 +25,5 @@ export const COLOR_HEX: Record<Color, string> = {
 }
 
 export const DEFAULT_CARD_FORM: import('./types').CardFormData = {
-  name: '', setCode: '', imageUrl: '', rarity: 'COMMON', color: 'RED', totalQuantity: 1, notes: '',
+  name: '', setCode: '', imageUrl: '', rarity: 'COMMON', color: 'RED', totalQuantity: 1, notes: '', cardmarketUrl: '',
 }
