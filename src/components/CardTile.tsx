@@ -32,8 +32,8 @@ export function CardTile({
   const availClass = available === 0 ? 'avail-empty' : available <= total * 0.3 ? 'avail-warn' : 'avail-good'
 
   return (
-    <div className="card-tile" style={{ '--card-color': colorHex + '55' } as React.CSSProperties}>
-      <div className="card-accent" style={{ background: `linear-gradient(90deg, ${colorHex}, ${colorHex}cc)` }} />
+    <div className="card-tile" style={{ '--card-color': colorHex + '55', borderColor: colorHex + '50' } as React.CSSProperties}>
+      <div className="card-accent" style={{ background: `linear-gradient(90deg, ${colorHex}, ${colorHex}88)` }} />
 
       <div className="card-img-wrap">
         {card.imageUrl && !imgErr ? (
@@ -48,7 +48,7 @@ export function CardTile({
         </div>
       </div>
 
-      <div className="card-info">
+      <div className="card-info" style={{ background: `linear-gradient(160deg, ${colorHex}0d 0%, transparent 60%)` }}>
         <div className="card-meta">
           <ColorDot color={card.color} />
           <span className="card-set-code">{card.setCode}</span>
