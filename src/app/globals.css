@@ -18,24 +18,24 @@
   --blue-accent:  #60a5fa;
 
   /* ── Surfaces — warm dark with clear depth steps ── */
-  --bg-base:     #0f1623;   /* Deep ocean — not pitch black */
-  --bg-depth:    #121a2e;
-  --bg-raised:   #172035;
-  --bg-surface:  #1d2a42;
-  --bg-card:     #233050;
-  --bg-elevated: #2a3a60;
-  --bg-input:    rgba(29,42,66,0.95);
+  --bg-base:     #1b2744;   /* Medium ocean blue — readable */
+  --bg-depth:    #1e2e50;
+  --bg-raised:   #243460;
+  --bg-surface:  #2a3d72;
+  --bg-card:     #2e4278;
+  --bg-elevated: #354c88;
+  --bg-input:    rgba(42,61,114,0.95);
 
   /* ── Borders — more visible ── */
-  --border-faint:  rgba(255,255,255,0.07);
-  --border:        rgba(255,255,255,0.12);
-  --border-strong: rgba(255,255,255,0.20);
+  --border-faint:  rgba(255,255,255,0.10);
+  --border:        rgba(255,255,255,0.16);
+  --border-strong: rgba(255,255,255,0.26);
   --border-gold:   rgba(240,180,41,0.40);
 
   /* ── Text — high contrast, readable ── */
-  --text-primary:   #eaf1f8;
-  --text-secondary: rgba(234,241,248,0.78);
-  --text-muted:     rgba(234,241,248,0.48);
+  --text-primary:   #f0f6ff;
+  --text-secondary: rgba(240,246,255,0.85);
+  --text-muted:     rgba(240,246,255,0.55);
   --text-gold:      #f0b429;
   --text-gold-dim:  #c98a1a;
 
@@ -81,9 +81,8 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 80% 55% at 5% 0%,  rgba(240,180,41,0.11) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 65% at 95% 100%, rgba(59,130,246,0.09) 0%, transparent 50%),
-    radial-gradient(ellipse 35% 35% at 50% 55%, rgba(168,85,247,0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 70% 50% at 5% 0%,  rgba(240,180,41,0.13) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 60% at 95% 100%, rgba(96,165,250,0.10) 0%, transparent 50%);
 }
 
 /* ═══ Scrollbar ═══ */
