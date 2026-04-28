@@ -5,20 +5,12 @@ import { RarityBadge, ColorDot } from './helpers'
 import { COLOR_HEX } from './constants'
 import type { Card } from './types'
 
-function cardmarketUrl(name: string) {
-  return `https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(name)}`
-}
-function tcgplayerUrl(name: string) {
-  return `https://www.tcgplayer.com/search/one-piece-card-game/product?q=${encodeURIComponent(name)}`
+function cmUrl(card: Card) {
+  if (card.cardmarketUrl) return card.cardmarketUrl
+  return `https://www.cardmarket.com/en/OnePiece/Products/Search?searchString=${encodeURIComponent(card.name)}`
 }
 
-export function CardTile({
-  card,
-  onBorrow,
-  onEdit,
-  onDelete,
-  isAdmin,
-}: {
+export function CardTile({ card, onBorrow, onEdit, onDelete, isAdmin }: {
   card: Card
   onBorrow: (card: Card) => void
   onEdit: (card: Card) => void
@@ -32,14 +24,14 @@ export function CardTile({
   const availClass = available === 0 ? 'avail-empty' : available <= total * 0.3 ? 'avail-warn' : 'avail-good'
 
   return (
-    <div className="card-tile" style={{ '--card-color': colorHex + '55', borderColor: colorHex + '50' } as React.CSSProperties}>
+    <div className="card-tile" style={{ '--card-color': colorHex + '55', borderColor: colorHex + '40' } as React.CSSProperties}>
       <div className="card-accent" style={{ background: `linear-gradient(90deg, ${colorHex}, ${colorHex}88)` }} />
 
       <div className="card-img-wrap">
         {card.imageUrl && !imgErr ? (
           <img src={card.imageUrl} alt={card.name} className="card-img" onError={() => setImgErr(true)} />
         ) : (
-          <div className="card-img-placeholder" style={{ background: `linear-gradient(160deg, ${colorHex}28 0%, var(--bg-elevated) 100%)` }}>
+          <div className="card-img-placeholder" style={{ background: `linear-gradient(160deg, ${colorHex}22 0%, var(--bg-elevated) 100%)` }}>
             {card.setCode}
           </div>
         )}
@@ -48,7 +40,7 @@ export function CardTile({
         </div>
       </div>
 
-      <div className="card-info" style={{ background: `linear-gradient(160deg, ${colorHex}0d 0%, transparent 60%)` }}>
+      <div className="card-info">
         <div className="card-meta">
           <ColorDot color={card.color} />
           <span className="card-set-code">{card.setCode}</span>
@@ -60,46 +52,23 @@ export function CardTile({
           <span className={`card-avail-text ${availClass}`}>
             {available === 0 ? 'Недоступно' : `${available}/${total} вільно`}
           </span>
-          {card.marketPrice != null && card.marketPrice > 0 ? (
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-              <span className="card-price" title="TCGPlayer USD">${card.marketPrice.toFixed(2)}</span>
-              <a
-                href={card.cardmarketUrl || cardmarketUrl(card.name)}
-                target="_blank" rel="noopener noreferrer"
-                className="price-link price-link--cm"
-                title="Переглянути на Cardmarket"
-                onClick={e => e.stopPropagation()}
-              >CM</a>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: 4 }}>
-              <a
-                href={card.cardmarketUrl || cardmarketUrl(card.name)}
-                target="_blank" rel="noopener noreferrer"
-                className="price-link price-link--cm"
-                title="Переглянути на Cardmarket"
-                onClick={e => e.stopPropagation()}
-              >CM</a>
-              <a
-                href={tcgplayerUrl(card.name)}
-                target="_blank" rel="noopener noreferrer"
-                className="price-link price-link--tcp"
-                title="Переглянути на TCGPlayer"
-                onClick={e => e.stopPropagation()}
-              >TCP</a>
-            </div>
-          )}
+          <a
+            href={cmUrl(card)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="price-link price-link--cm"
+            title="Переглянути на Cardmarket"
+            onClick={e => e.stopPropagation()}
+          >
+            CM
+          </a>
         </div>
 
         {card.notes && <p className="card-notes">{card.notes}</p>}
       </div>
 
       <div className={`card-actions${isAdmin ? '' : ' no-admin'}`}>
-        <button
-          className="btn-borrow"
-          disabled={available === 0}
-          onClick={() => onBorrow(card)}
-        >
+        <button className="btn-borrow" disabled={available === 0} onClick={() => onBorrow(card)}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 11, height: 11 }}>
             <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
           </svg>
