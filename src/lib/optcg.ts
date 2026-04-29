@@ -50,11 +50,19 @@ export async function fetchDeckCards(stId: string): Promise<OPTCGCard[]> {
 // Maps OPTCG API rarity strings to our Rarity enum
 export function mapRarity(r: string): 'COMMON' | 'UNCOMMON' | 'RARE' | 'SUPER_RARE' | 'SECRET_RARE' | 'LEADER' {
   const low = r.toLowerCase().trim()
-  if (low === 'leader') return 'LEADER'
-  if (low === 'secret rare') return 'SECRET_RARE'
-  if (low === 'super rare') return 'SUPER_RARE'
-  if (low === 'rare') return 'RARE'
-  if (low === 'uncommon') return 'UNCOMMON'
+  if (low === 'leader' || low === 'l') return 'LEADER'
+  // Secret Rare — check before Super Rare
+  if (low.includes('secret') || low === 'sec' || low === 'sr2') return 'SECRET_RARE'
+  // Super Rare
+  if (low.includes('super') || low === 'sr') return 'SUPER_RARE'
+  // Rare
+  if (low === 'rare' || low === 'r') return 'RARE'
+  // Uncommon
+  if (low === 'uncommon' || low === 'uc' || low === 'u') return 'UNCOMMON'
+  // Common
+  if (low === 'common' || low === 'c') return 'COMMON'
+  // Log unknown rarities so we can catch API changes
+  console.warn(`[mapRarity] Unknown rarity value: "${r}" — defaulting to COMMON`)
   return 'COMMON'
 }
 
