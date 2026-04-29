@@ -11,7 +11,7 @@ type Stats = {
   collectionValue: number
 }
 
-type Tab = 'cards' | 'borrows' | 'wishlist'
+type Tab = 'cards' | 'borrows' | 'wishlist' | 'beta'
 
 export function DashboardHeader({
   stats,
@@ -150,6 +150,16 @@ export function DashboardHeader({
             </svg>
             Вішліст
             {wishlistCount > 0 && <span className="tab-count" style={{ background: 'rgba(244,63,94,0.15)', color: '#f87171' }}>{wishlistCount}</span>}
+          </button>
+          <button className={`tab-btn${tab === 'beta' ? ' active' : ''}`} onClick={() => setTab('beta')} style={tab === 'beta' ? { color: '#818cf8' } : {}}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 16, height: 16, borderRadius: 4,
+              background: tab === 'beta' ? '#4f46e5' : 'rgba(79,70,229,0.4)',
+              color: '#fff', fontSize: 9, fontWeight: 700,
+              fontFamily: 'var(--font-body)',
+            }}>β</span>
+            Пошук
           </button>
         </div>
       </header>

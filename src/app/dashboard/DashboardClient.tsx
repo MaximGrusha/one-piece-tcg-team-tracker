@@ -12,6 +12,7 @@ import { BorrowModal } from '@/components/BorrowModal'
 import { CardModal } from '@/components/CardModal'
 import { BorrowHistoryPanel } from '@/components/BorrowHistory'
 import { WishlistPanel } from '@/components/WishlistPanel'
+import { BetaPanel } from '@/components/BetaPanel'
 
 export default function DashboardClient({
   userRole,
@@ -23,7 +24,7 @@ export default function DashboardClient({
   displayName: string
 }) {
   const isAdmin = userRole === 'ADMIN'
-  const [tab, setTab] = useState<'cards' | 'borrows' | 'wishlist'>('cards')
+  const [tab, setTab] = useState<'cards' | 'borrows' | 'wishlist' | 'beta'>('cards')
   const [wishlistCount, setWishlistCount] = useState(0)
   const [cards, setCards] = useState<Card[]>([])
   const [borrows, setBorrows] = useState<Borrow[]>([])
@@ -225,9 +226,16 @@ export default function DashboardClient({
         )}
 
         {tab === 'wishlist' && (
-          <WishlistPanel
+          <WishlistPanel isAdmin={isAdmin} showToast={showToast} />
+        )}
+
+        {tab === 'beta' && (
+          <BetaPanel
+            sets={sets}
+            existingCards={cards}
             isAdmin={isAdmin}
             showToast={showToast}
+            onCardAdded={fetchCards}
           />
         )}
       </div>
@@ -314,6 +322,14 @@ export default function DashboardClient({
               {wishlistCount > 0 && <span className="bottom-nav-badge" style={{ background: '#dc2626' }}>{wishlistCount}</span>}
             </div>
             Вішліст
+          </button>
+          <button className={`bottom-nav-btn${tab === 'beta' ? ' active' : ''}`} onClick={() => setTab('beta')} style={tab === 'beta' ? { color: '#818cf8' } : {}}>
+            <div className="bottom-nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+              </svg>
+            </div>
+            Пошук
           </button>
         </div>
       </nav>
