@@ -218,30 +218,59 @@ export function BetaPanel({
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PreviewCard[]>([])
   const [loading, setLoading] = useState(false)
+  const [pending, setPending] = useState(false)  // debounce in-progress
   const [addTarget, setAddTarget] = useState<PreviewCard | null>(null)
   const [searched, setSearched] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const existingSetCodes = new Set(existingCards.map(c => c.setCode))
 
   const doSearch = useCallback(async (setCode: string, q: string) => {
-    setLoading(true); setSearched(true)
+    // Cancel any in-flight request
+    if (abortRef.current) abortRef.current.abort()
+    abortRef.current = new AbortController()
+
+    setResults([])
+    setLoading(true)
+    setPending(false)
+    setSearched(true)
+
     try {
       const params = new URLSearchParams({ setCode, q })
-      const res = await fetch(`/api/cards/preview?${params}`)
+      const res = await fetch(`/api/cards/preview?${params}`, { signal: abortRef.current.signal })
       if (!res.ok) throw new Error()
-      setResults(await res.json())
-    } catch {
-      setResults([]); showToast('Помилка завантаження даних з API', 'error')
+      const data: PreviewCard[] = await res.json()
+      // Client-side filter as safety net
+      const filtered = q.trim()
+        ? data.filter(c => c.name.toLowerCase().includes(q.toLowerCase().trim()))
+        : data
+      setResults(filtered)
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return  // Ignore cancelled requests
+      setResults([])
+      showToast('Помилка завантаження даних з API', 'error')
     } finally {
       setLoading(false)
     }
   }, [showToast])
 
   useEffect(() => {
-    if (!selSet) { setResults([]); setSearched(false); return }
+    if (!selSet) {
+      setResults([])
+      setSearched(false)
+      setLoading(false)
+      setPending(false)
+      if (abortRef.current) abortRef.current.abort()
+      return
+    }
+    // Clear stale results immediately, mark as pending while debounce waits
+    setResults([])
+    setSearched(false)
+    setPending(true)
+    if (abortRef.current) abortRef.current.abort()
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => doSearch(selSet.code, query), 400)
+    debounceRef.current = setTimeout(() => doSearch(selSet.code, query), 350)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [selSet, query, doSearch])
 
@@ -325,20 +354,21 @@ export function BetaPanel({
           </div>
         )}
 
-        {selSet && loading && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
+        {selSet && (loading || pending) && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 60, color: 'var(--text-muted)' }}>
             <span className="spinner" />
+            <span style={{ fontSize: 13 }}>{pending ? 'Очікування...' : 'Завантаження карток...'}</span>
           </div>
         )}
 
-        {selSet && !loading && searched && results.length === 0 && (
+        {selSet && !loading && !pending && searched && results.length === 0 && (
           <div className="empty-state">
             <p>Нічого не знайдено</p>
             <p style={{ fontSize: 12 }}>Спробуйте інший запит або оберіть інший випуск</p>
           </div>
         )}
 
-        {results.length > 0 && (
+        {!loading && !pending && results.length > 0 && (
           <>
             <p className="results-count" style={{ marginBottom: 14 }}>
               {results.length} {results.length === 1 ? 'картка' : results.length < 5 ? 'картки' : 'карток'}
